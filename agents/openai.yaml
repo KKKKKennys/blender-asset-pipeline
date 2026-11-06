@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blender Asset Pipeline"
+  short_description: "Blender 资产命名、材质检查和批量导出的可复用 Agent 指令流程"
+  default_prompt: "使用 $blender-asset-pipeline 检查所选资产，并按约定命名与导出规范生成处理计划。"
