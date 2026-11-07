@@ -5,6 +5,19 @@ from pathlib import Path, PurePosixPath
 
 MODES = {'audit', 'organize', 'export', 'organize_export'}
 
+def relative_file_path(value):
+    if not isinstance(value, str) or not value.strip():
+        return False
+    portable = value.replace('\\', '/')
+    path = PurePosixPath(portable)
+    return (bool(path.parts) and not path.is_absolute() and '..' not in path.parts
+            and ':' not in value and '\0' not in value and not portable.endswith(('/', '/.')))
+
+def path_key(value, case_sensitive):
+    # Compare lexical aliases without touching the delivery directory.
+    normalized = str(PurePosixPath(value.replace('\\', '/')))
+    return normalized if case_sensitive else normalized.casefold()
+
 def validate(plan):
     errors = []
     if not isinstance(plan, dict):
@@ -12,7 +25,7 @@ def validate(plan):
     if plan.get('schema_version') != '2.0':
         errors.append('schema_version must be 2.0')
     mode = plan.get('mode')
-    if mode not in MODES:
+    if not isinstance(mode, str) or mode not in MODES:
         errors.append('unknown mode')
     scope = plan.get('scope_ids')
     if not isinstance(scope, list) or not scope or any(not isinstance(s, str) or not s for s in scope):
@@ -32,6 +45,9 @@ def validate(plan):
     occupied = plan.get('occupied_names', [])
     if not isinstance(occupied, list) or any(not isinstance(x, dict) for x in occupied):
         return errors + ['occupied_names must be an array of objects']
+    for i, item in enumerate(occupied):
+        if any(not isinstance(item.get(k), str) or not item[k] for k in ('namespace', 'name')):
+            errors.append('occupied name %d requires namespace/name' % i)
     outgoing = {(r.get('namespace'), r.get('old')) for r in renames if isinstance(r, dict)
                 and isinstance(r.get('namespace'), str) and isinstance(r.get('old'), str)}
     for i, r in enumerate(renames):
@@ -54,23 +70,27 @@ def validate(plan):
                 errors.append('target name already occupied: %s/%s' % key)
     files = set()
     existing_files = plan.get('existing_files', [])
-    if not isinstance(existing_files, list) or any(not isinstance(v, str) for v in existing_files):
+    if not isinstance(existing_files, list) or any(not relative_file_path(v) for v in existing_files):
         return errors + ['existing_files must be an array of relative paths']
     case_sensitive = plan.get('case_sensitive_paths', False)
-    normal = lambda x: x.replace('\\', '/') if case_sensitive else x.replace('\\', '/').casefold()
-    existing = {normal(v) for v in existing_files}
+    if not isinstance(case_sensitive, bool):
+        errors.append('case_sensitive_paths must be a boolean')
+        case_sensitive = False
+    existing = {path_key(v, case_sensitive) for v in existing_files}
     for i, exp in enumerate(exports):
         if not isinstance(exp, dict):
             errors.append('export %d must be an object' % i); continue
         ident, dest = exp.get('id'), exp.get('path')
         if not isinstance(ident, str) or ident not in scope:
             errors.append('out-of-scope export at index %d' % i)
+        if not isinstance(exp.get('overwrite_approved', False), bool):
+            errors.append('overwrite_approved must be a boolean at index %d' % i)
         if not isinstance(dest, str) or not dest.strip():
             errors.append('export requires a relative destination'); continue
-        path = PurePosixPath(dest.replace('\\', '/'))
-        if path.is_absolute() or '..' in path.parts or ':' in dest:
+        if not relative_file_path(dest):
             errors.append('export path must stay within delivery directory: ' + dest)
-        key = normal(dest)
+            continue
+        key = path_key(dest, case_sensitive)
         if key in files:
             errors.append('duplicate output file: ' + dest)
         files.add(key)
