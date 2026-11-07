@@ -1,6 +1,8 @@
 ---
 name: blender-asset-pipeline
 description: Inspect, consistently name, check materials, and export a scoped batch of Blender assets through an available Blender connection or Python workflow. Use for asset preparation and delivery requests, not for creating new models or redesigning materials.
+metadata:
+  version: "2.0.0"
 ---
 
 # Blender Asset Pipeline
@@ -14,6 +16,12 @@ description: Inspect, consistently name, check materials, and export a scoped ba
 - **导出**：检查后按约定格式交付；只需要导出时，不顺便改名或改材质。
 
 这是指令型 Skill，不自带 Blender 插件或批量处理执行器。调用环境需能操作 Blender：优先使用可用的 Blender MCP；也可以在用户指定的 Blender / Python 环境执行任务生成的脚本。先检查连接与当前工程，再选择路径；不要假设 MCP 可以在后台 Blender 启动。
+
+## V2 按需阅读
+
+批量整理 / 导出时读 [执行约定](references/execution-v2.md)，将现场信息形成计划，并用 `scripts/check_plan.py` 做只读一致性检查。仅检查或文字咨询保持轻量；检查器通过不等于资产正确，也不授予修改权限。
+
+交付按 [V2 记录](references/delivery-record.md) 为每项区分生成、回读与外观。中断时对照现场和已完成项恢复，不从头盲目重复执行。
 
 ## 1. 确定范围与规范
 

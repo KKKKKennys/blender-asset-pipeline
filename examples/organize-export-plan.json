@@ -1,0 +1,47 @@
+{
+  "schema_version": "2.0",
+  "example_kind": "synthetic_not_production",
+  "mode": "organize_export",
+  "scope_ids": [
+    "prop-chair",
+    "prop-table"
+  ],
+  "occupied_names": [
+    {
+      "namespace": "OBJECT",
+      "name": "Chair"
+    },
+    {
+      "namespace": "OBJECT",
+      "name": "Table"
+    }
+  ],
+  "renames": [
+    {
+      "id": "prop-chair",
+      "namespace": "OBJECT",
+      "old": "Chair",
+      "new": "SM_Chair_01"
+    },
+    {
+      "id": "prop-table",
+      "namespace": "OBJECT",
+      "old": "Table",
+      "new": "SM_Table_01"
+    }
+  ],
+  "existing_files": [],
+  "case_sensitive_paths": false,
+  "exports": [
+    {
+      "id": "prop-chair",
+      "path": "props/SM_Chair_01.glb",
+      "overwrite_approved": false
+    },
+    {
+      "id": "prop-table",
+      "path": "props/SM_Table_01.glb",
+      "overwrite_approved": false
+    }
+  ]
+}
