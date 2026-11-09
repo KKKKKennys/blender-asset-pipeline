@@ -11,7 +11,9 @@ JSON 计划的 `schema_version` 为 `2.0`。`scope_ids` 是本次任务中确定
 - `occupied_names`: 批次内外当前已占用的 `{namespace, name}`，不能省略批次外冲突检查。
 - `exports`: `id / path / overwrite_approved`；`path` 相对任务交付目录。
 - `existing_files`: 输出目录中已有相对路径。
-- `case_sensitive_paths`: 依据实际目标文件系统配置；默认 false，便于 Windows 交付。
+- `case_sensitive_paths`: 布尔值，依据实际目标文件系统配置；默认 false，便于 Windows 交付。
+
+输出路径与 `existing_files` 采用相同的词法规范化：统一正反斜杠、折叠重复分隔符与 `.`，再按大小写策略比较。路径必须指向交付目录内的文件，不能是目录本身或含 `..`。`overwrite_approved` 必须为布尔值，只有 `true` 表示已声明覆盖授权。该检查不访问文件系统，也不解析符号链接或文件系统特有的别名，执行前仍需核对真实目标。
 
 完整虚构样例见 [计划示例](../examples/organize-export-plan.json)。
 
